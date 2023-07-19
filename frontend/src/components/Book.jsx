@@ -28,7 +28,7 @@ const Book = ({ book }) => {
             </Col>
             <Col sm={9} md={7}>
               <strong>
-                {book.volumeInfo.authors.map((author, index) =>
+                {book.volumeInfo.authors?.map((author, index) =>
                   index !== book.volumeInfo.authors.length - 1
                     ? `${author}, `
                     : author

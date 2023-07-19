@@ -4,18 +4,19 @@ import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import Book from './Book';
 
 const QueryForm = () => {
+  const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(null);
-  const [result, setResult] = useState(null);
+  const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [content, setContent] = useState(null);
   const [query, setQuery] = useState('');
 
-  const queryUrl = `https://www.googleapis.com/books/v1/volumes?q=${query}`;
+  const queryUrl = `https://www.googleapis.com/books/v1/volumes?q="${query}"&startIndex=${
+    (page - 1) * 10
+  }&maxResults=10`;
 
   useEffect(() => {
-    if (totalItems > 0 && result) {
-      console.log(result);
-
+    if (totalItems > 0 && results.length > 0) {
       setContent(
         <>
           <Row className='justify-content-md-center mt-5'>
@@ -24,12 +25,19 @@ const QueryForm = () => {
             </Col>
           </Row>
           <Row className='justify-content-md-center'>
-            {result.map((item) => (
+            {results?.map((item) => (
               <Col sm={12} md={6} lg={4} key={item.id}>
                 <Book book={item} />
               </Col>
             ))}
           </Row>
+          <Button
+            variant='primary'
+            type='button'
+            className='btn-lg mt-3 mb-5'
+            onClick={handleLoadMore}>
+            Load more
+          </Button>
         </>
       );
     } else if (error) {
@@ -48,37 +56,65 @@ const QueryForm = () => {
         </>
       );
     }
-  }, [totalItems, result, error]);
 
-  const handleChange = (e) => {
-    setQuery(e.target.value);
-  };
+    async function handleLoadMore() {
+      setPage(page + 1);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    setTotalItems(null);
-    setResult(null);
-    setError(null);
-    setContent(null);
-
-    async function sendQuery() {
       try {
         const response = await axios.get(queryUrl);
-        setTotalItems(response.data.totalItems);
-        setResult(response.data.items);
+
+        const newResults = response.data.items || [];
+
+        setResults((prevResults) => {
+          return prevResults
+            ? [
+                ...prevResults,
+                ...newResults.filter(
+                  (newItem) =>
+                    !prevResults.some((prevItem) => prevItem.id === newItem.id)
+                ),
+              ]
+            : newResults;
+        });
       } catch (error) {
         setError(error);
       }
     }
+  }, [totalItems, results, error, page, queryUrl]);
 
-    sendQuery();
+  const handleChange = (e) => {
+    setQuery(encodeURIComponent(e.target.value));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (query.trim() === '') {
+      return;
+    }
+
+    setPage(1);
+    setTotalItems(null);
+    setResults([]);
+    setError(null);
+    setContent(null);
+
+    try {
+      setPage(page + 1);
+
+      const response = await axios.get(queryUrl);
+
+      setTotalItems(response.data.totalItems);
+      setResults(response.data.items);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   return (
     <Container>
       <Row className='justify-content-md-center'>
-        <Col sm={12} md={6}>
+        <Col sm={12} md={8}>
           <Form onSubmit={handleSubmit}>
             <Form.Group className='mb-4' controlId='query'>
               <Form.Control
@@ -86,7 +122,7 @@ const QueryForm = () => {
                 placeholder='Enter a book name'
                 autoFocus
                 onChange={handleChange}
-                value={query}
+                value={decodeURIComponent(query)}
               />
             </Form.Group>
 
