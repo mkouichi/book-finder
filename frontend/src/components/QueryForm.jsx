@@ -17,8 +17,6 @@ const QueryForm = () => {
   }&maxResults=10`;
 
   const handleLoadMore = useCallback(async () => {
-    console.log('handleLoadMore');
-
     try {
       setPage((prevPage) => prevPage + 1);
       setIsLoading(true);
