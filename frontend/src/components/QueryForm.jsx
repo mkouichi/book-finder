@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col, Spinner } from 'react-bootstrap';
 import Book from './Book';
 
 const QueryForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(null);
   const [results, setResults] = useState([]);
@@ -36,7 +37,7 @@ const QueryForm = () => {
             type='button'
             className='btn-lg mt-3 mb-5'
             onClick={handleLoadMore}>
-            Load more
+            {isLoading ? <Spinner animation='border' /> : 'Load more'}
           </Button>
         </>
       );
@@ -58,10 +59,13 @@ const QueryForm = () => {
     }
 
     async function handleLoadMore() {
-      setPage(page + 1);
-
       try {
+        setPage(page + 1);
+        setIsLoading(true);
+
         const response = await axios.get(queryUrl);
+
+        setIsLoading(false);
 
         const newResults = response.data.items || [];
 
@@ -80,7 +84,7 @@ const QueryForm = () => {
         setError(error);
       }
     }
-  }, [totalItems, results, error, page, queryUrl]);
+  }, [totalItems, results, error, page, queryUrl, isLoading]);
 
   const handleChange = (e) => {
     setQuery(encodeURIComponent(e.target.value));
@@ -101,8 +105,11 @@ const QueryForm = () => {
 
     try {
       setPage(page + 1);
+      setIsLoading(true);
 
       const response = await axios.get(queryUrl);
+
+      setIsLoading(false);
 
       setTotalItems(response.data.totalItems);
       setResults(response.data.items);
@@ -127,7 +134,7 @@ const QueryForm = () => {
             </Form.Group>
 
             <Button variant='primary' type='submit' className='btn-lg'>
-              Search
+              {isLoading ? <Spinner animation='border' /> : 'Search'}
             </Button>
           </Form>
         </Col>
