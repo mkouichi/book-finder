@@ -5,7 +5,7 @@ const Book = ({ book }) => {
   const imageLink = `http://books.google.com/books/content?id=${book.id}&printsec=frontcover&img=1&zoom=1&source=gbs_api`;
 
   return (
-    <Card className='my-3 p-3 rounded'>
+    <Card className='my-3 p-3 rounded' style={{ minHeight: '470px' }}>
       <a href={infoLink} target='_blank' rel='noopener noreferrer'>
         <Card.Img
           src={imageLink}
