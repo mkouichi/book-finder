@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import Book from './Book';
 
 const QueryForm = () => {
   const [totalItems, setTotalItems] = useState(null);
@@ -17,27 +18,34 @@ const QueryForm = () => {
 
       setContent(
         <>
-          <Row className='justify-content-md-center'>
-            <Col xs={12} md={10}>
-              Items found: {totalItems}
+          <Row className='justify-content-md-center mt-5'>
+            <Col sm={12} md={6}>
+              <h2>Items found: {totalItems}</h2>
             </Col>
           </Row>
           <Row className='justify-content-md-center'>
-            <Col xs={12} md={10}>
-              {result.map((item) => (
-                <div key={item.id}>{item.volumeInfo.title}</div>
-              ))}
-            </Col>
+            {result.map((item) => (
+              <Col sm={12} md={6} lg={4} key={item.id}>
+                <Book book={item} />
+              </Col>
+            ))}
           </Row>
         </>
       );
     } else if (error) {
       setContent(
-        <Row className='justify-content-md-center'>
-          <Col xs={12} md={10}>
-            <div>Something went wrong: {error.message}</div>
-          </Col>
-        </Row>
+        <>
+          <Row className='justify-content-md-center mt-5'>
+            <Col sm={12} md={6}>
+              <h2>Something went wrong:</h2>
+            </Col>
+          </Row>
+          <Row className='justify-content-md-center'>
+            <Col sm={12} md={6}>
+              <h2>{error.message}</h2>
+            </Col>
+          </Row>
+        </>
       );
     }
   }, [totalItems, result, error]);
@@ -48,6 +56,11 @@ const QueryForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    setTotalItems(null);
+    setResult(null);
+    setError(null);
+    setContent(null);
 
     async function sendQuery() {
       try {
@@ -65,7 +78,7 @@ const QueryForm = () => {
   return (
     <Container>
       <Row className='justify-content-md-center'>
-        <Col xs={12} md={10}>
+        <Col sm={12} md={6}>
           <Form onSubmit={handleSubmit}>
             <Form.Group className='mb-4' controlId='query'>
               <Form.Control
