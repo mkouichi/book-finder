@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Form, Button, Container, Row, Col, Spinner } from 'react-bootstrap';
 import Book from './Book';
@@ -16,9 +16,39 @@ const QueryForm = () => {
     (page - 1) * 10
   }&maxResults=10`;
 
-  useEffect(() => {
+  const handleLoadMore = useCallback(async () => {
+    console.log('handleLoadMore');
+
+    try {
+      setPage((prevPage) => prevPage + 1);
+      setIsLoading(true);
+
+      const response = await axios.get(queryUrl);
+
+      setIsLoading(false);
+
+      const newResults = response.data.items || [];
+
+      setResults((prevResults) => {
+        return prevResults
+          ? [
+              ...prevResults,
+              ...newResults.filter(
+                (newItem) =>
+                  !prevResults.some((prevItem) => prevItem.id === newItem.id)
+              ),
+            ]
+          : newResults;
+      });
+    } catch (error) {
+      setError(error);
+      setIsLoading(false);
+    }
+  }, [queryUrl]);
+
+  const renderContent = useCallback(() => {
     if (totalItems > 0 && results.length > 0) {
-      setContent(
+      return (
         <>
           <Row className='justify-content-md-center mt-5'>
             <Col sm={12} md={6}>
@@ -36,13 +66,14 @@ const QueryForm = () => {
             variant='primary'
             type='button'
             className='btn-lg mt-3 mb-5'
-            onClick={handleLoadMore}>
+            onClick={handleLoadMore}
+            disabled={isLoading}>
             {isLoading ? <Spinner animation='border' /> : 'Load more'}
           </Button>
         </>
       );
     } else if (error) {
-      setContent(
+      return (
         <>
           <Row className='justify-content-md-center mt-5'>
             <Col sm={12} md={6}>
@@ -57,34 +88,11 @@ const QueryForm = () => {
         </>
       );
     }
+  }, [isLoading, totalItems, results, error, handleLoadMore]);
 
-    async function handleLoadMore() {
-      try {
-        setPage(page + 1);
-        setIsLoading(true);
-
-        const response = await axios.get(queryUrl);
-
-        setIsLoading(false);
-
-        const newResults = response.data.items || [];
-
-        setResults((prevResults) => {
-          return prevResults
-            ? [
-                ...prevResults,
-                ...newResults.filter(
-                  (newItem) =>
-                    !prevResults.some((prevItem) => prevItem.id === newItem.id)
-                ),
-              ]
-            : newResults;
-        });
-      } catch (error) {
-        setError(error);
-      }
-    }
-  }, [totalItems, results, error, page, queryUrl, isLoading]);
+  useEffect(() => {
+    setContent(renderContent());
+  }, [renderContent]);
 
   const handleChange = (e) => {
     setQuery(encodeURIComponent(e.target.value));
@@ -133,7 +141,11 @@ const QueryForm = () => {
               />
             </Form.Group>
 
-            <Button variant='primary' type='submit' className='btn-lg'>
+            <Button
+              variant='primary'
+              type='submit'
+              className='btn-lg'
+              disabled={isLoading}>
               {isLoading ? <Spinner animation='border' /> : 'Search'}
             </Button>
           </Form>
