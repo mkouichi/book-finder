@@ -1,4 +1,5 @@
 import { Navbar, Container } from 'react-bootstrap';
+import { LinkContainer } from 'react-router-bootstrap';
 import { ImBooks } from 'react-icons/im';
 
 const Header = () => {
@@ -10,10 +11,12 @@ const Header = () => {
         expand='md'
         collapseOnSelect>
         <Container>
-          <Navbar.Brand className='fs-2 fw-bold'>
-            <ImBooks className='me-2' />
-            Book Finder
-          </Navbar.Brand>
+          <LinkContainer to='/'>
+            <Navbar.Brand className='fs-2 fw-bold'>
+              <ImBooks className='me-2' />
+              Book Finder
+            </Navbar.Brand>
+          </LinkContainer>
         </Container>
       </Navbar>
     </header>
